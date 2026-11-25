@@ -135,6 +135,8 @@ abstract class EscapeHandler {
 
   void clearAltBuffer();
 
+  void fullReset();
+
   void setAppKeypadMode(bool enabled);
 
   void setReportFocusMode(bool enabled);

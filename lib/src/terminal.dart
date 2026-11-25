@@ -726,6 +726,31 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
   }
 
   @override
+  void fullReset() {
+    _buffer = _mainBuffer;
+    _altBuffer.clear();
+    _altBuffer.resetVerticalMargins();
+    _mainBuffer.clear();
+    _mainBuffer.resetVerticalMargins();
+    _mainBuffer.setCursor(0, 0);
+    _cursorStyle.reset();
+    _insertMode = false;
+    _lineFeedMode = false;
+    _cursorKeysMode = false;
+    _reverseDisplayMode = false;
+    _originMode = false;
+    _autoWrapMode = true;
+    _mouseMode = MouseMode.none;
+    _mouseReportMode = MouseReportMode.normal;
+    _cursorBlinkMode = false;
+    _cursorVisibleMode = true;
+    _appKeypadMode = false;
+    _reportFocusMode = false;
+    _altBufferMouseScrollMode = false;
+    _bracketedPasteMode = false;
+  }
+
+  @override
   void setAppKeypadMode(bool enabled) {
     _appKeypadMode = enabled;
   }

@@ -101,7 +101,7 @@ class EscapeParser {
     'H'.charCode: _escHandleTabSet,
     'M'.charCode: _escHandleReverseIndex,
     // 'P'.charCode: _unsupportedHandler, // Sixel
-    // 'c'.charCode: _unsupportedHandler,
+    'c'.charCode: _escHandleFullReset,
     // '#'.charCode: _unsupportedHandler,
     '('.charCode: _escHandleDesignateCharset0, //  SCS - G0
     ')'.charCode: _escHandleDesignateCharset1, //  SCS - G1
@@ -110,6 +110,14 @@ class EscapeParser {
     '>'.charCode: _escHandleResetAppKeypadMode, // TODO: Normal Keypad
     '='.charCode: _escHandleSetAppKeypadMode, // TODO: Application Keypad
   });
+
+  /// `ESC c` Full Reset (RIS)
+  ///
+  /// https://terminalguide.namepad.de/seq/a_esc_sc/
+  bool _escHandleFullReset() {
+    handler.fullReset();
+    return true;
+  }
 
   /// `ESC 7` Save Cursor (DECSC)
   ///
@@ -1035,6 +1043,7 @@ class EscapeParser {
           handler.useAltBuffer();
         } else {
           handler.useMainBuffer();
+          handler.restoreCursor();
         }
         return;
       case 2004:

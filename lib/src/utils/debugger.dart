@@ -415,6 +415,11 @@ class _TerminalDebuggerHandler implements EscapeHandler {
   }
 
   @override
+  void fullReset() {
+    onCommand('fullReset');
+  }
+
+  @override
   void setAppKeypadMode(bool enabled) {
     onCommand('setAppKeypadMode($enabled)');
   }
