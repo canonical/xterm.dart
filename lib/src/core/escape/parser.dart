@@ -287,7 +287,9 @@ class EscapeParser {
     'm'.codeUnitAt(0): _csiHandleSgr,
     'n'.codeUnitAt(0): _csiHandleDeviceStatusReport,
     'r'.codeUnitAt(0): _csiHandleSetMargins,
+    's'.codeUnitAt(0): _csiHandleSaveCursor,
     't'.codeUnitAt(0): _csiWindowManipulation,
+    'u'.codeUnitAt(0): _csiHandleRestoreCursor,
     'A'.codeUnitAt(0): _csiHandleCursorUp,
     'B'.codeUnitAt(0): _csiHandleCursorDown,
     'C'.codeUnitAt(0): _csiHandleCursorForward,
@@ -317,6 +319,19 @@ class EscapeParser {
   //     handler.cursorHorizontal(_csi.params[0]);
   //   }
   // }
+
+  /// `ESC [ s` Save Cursor (SCOSC). Sequences with a prefix, such as the kitty
+  /// keyboard protocol's `ESC [ > Ps u`, are different commands.
+  void _csiHandleSaveCursor() {
+    if (_csi.prefix != null || _csi.params.isNotEmpty) return;
+    handler.saveCursor();
+  }
+
+  /// `ESC [ u` Restore Cursor (SCORC).
+  void _csiHandleRestoreCursor() {
+    if (_csi.prefix != null || _csi.params.isNotEmpty) return;
+    handler.restoreCursor();
+  }
 
   /// `ESC [ Ps b` Repeat Previous Character (REP)
   ///
