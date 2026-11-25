@@ -172,11 +172,32 @@ class TerminalViewState extends State<TerminalView> {
     _shortcutManager = ShortcutManager(
       shortcuts: widget.shortcuts ?? defaultTerminalShortcuts,
     );
+    _wasUsingAltBuffer = widget.terminal.isUsingAltBuffer;
+    widget.terminal.addListener(_onTerminalChanged);
     super.initState();
+  }
+
+  bool _wasUsingAltBuffer = false;
+
+  // The alternate buffer has no scrollback, which resets the scroll offset.
+  // Scroll back to the bottom when returning to the main buffer.
+  void _onTerminalChanged() {
+    final usingAltBuffer = widget.terminal.isUsingAltBuffer;
+    final leftAltBuffer = _wasUsingAltBuffer && !usingAltBuffer;
+    _wasUsingAltBuffer = usingAltBuffer;
+    if (!leftAltBuffer) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _scrollToBottom();
+    });
   }
 
   @override
   void didUpdateWidget(TerminalView oldWidget) {
+    if (oldWidget.terminal != widget.terminal) {
+      oldWidget.terminal.removeListener(_onTerminalChanged);
+      _wasUsingAltBuffer = widget.terminal.isUsingAltBuffer;
+      widget.terminal.addListener(_onTerminalChanged);
+    }
     if (oldWidget.focusNode != widget.focusNode) {
       if (oldWidget.focusNode == null) {
         _focusNode.dispose();
@@ -201,6 +222,7 @@ class TerminalViewState extends State<TerminalView> {
 
   @override
   void dispose() {
+    widget.terminal.removeListener(_onTerminalChanged);
     if (widget.focusNode == null) {
       _focusNode.dispose();
     }
