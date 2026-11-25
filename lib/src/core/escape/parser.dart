@@ -101,7 +101,7 @@ class EscapeParser {
     'H'.charCode: _escHandleTabSet,
     'M'.charCode: _escHandleReverseIndex,
     // 'P'.charCode: _unsupportedHandler, // Sixel
-    // 'c'.charCode: _unsupportedHandler,
+    'c'.charCode: _escHandleFullReset,
     // '#'.charCode: _unsupportedHandler,
     '('.charCode: _escHandleDesignateCharset0, //  SCS - G0
     ')'.charCode: _escHandleDesignateCharset1, //  SCS - G1
@@ -110,6 +110,14 @@ class EscapeParser {
     '>'.charCode: _escHandleResetAppKeypadMode, // TODO: Normal Keypad
     '='.charCode: _escHandleSetAppKeypadMode, // TODO: Application Keypad
   });
+
+  /// `ESC c` Full Reset (RIS)
+  ///
+  /// https://terminalguide.namepad.de/seq/a_esc_sc/
+  bool _escHandleFullReset() {
+    handler.fullReset();
+    return true;
+  }
 
   /// `ESC 7` Save Cursor (DECSC)
   ///
@@ -279,7 +287,9 @@ class EscapeParser {
     'm'.codeUnitAt(0): _csiHandleSgr,
     'n'.codeUnitAt(0): _csiHandleDeviceStatusReport,
     'r'.codeUnitAt(0): _csiHandleSetMargins,
+    's'.codeUnitAt(0): _csiHandleSaveCursor,
     't'.codeUnitAt(0): _csiWindowManipulation,
+    'u'.codeUnitAt(0): _csiHandleRestoreCursor,
     'A'.codeUnitAt(0): _csiHandleCursorUp,
     'B'.codeUnitAt(0): _csiHandleCursorDown,
     'C'.codeUnitAt(0): _csiHandleCursorForward,
@@ -309,6 +319,19 @@ class EscapeParser {
   //     handler.cursorHorizontal(_csi.params[0]);
   //   }
   // }
+
+  /// `ESC [ s` Save Cursor (SCOSC). Sequences with a prefix, such as the kitty
+  /// keyboard protocol's `ESC [ > Ps u`, are different commands.
+  void _csiHandleSaveCursor() {
+    if (_csi.prefix != null || _csi.params.isNotEmpty) return;
+    handler.saveCursor();
+  }
+
+  /// `ESC [ u` Restore Cursor (SCORC).
+  void _csiHandleRestoreCursor() {
+    if (_csi.prefix != null || _csi.params.isNotEmpty) return;
+    handler.restoreCursor();
+  }
 
   /// `ESC [ Ps b` Repeat Previous Character (REP)
   ///
@@ -1035,6 +1058,7 @@ class EscapeParser {
           handler.useAltBuffer();
         } else {
           handler.useMainBuffer();
+          handler.restoreCursor();
         }
         return;
       case 2004:
